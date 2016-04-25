@@ -34,17 +34,17 @@
 @implementation UIView (FindSubview)
 
 - (UIView *)brc_findFirstSubviewPassingTest:(BOOL (^)(UIView *subview))predicate {
-
+    
     if (predicate(self))
         return self;
     else
         for (UIView *subview in self.subviews) {
-
+            
             UIView *result = [subview brc_findFirstSubviewPassingTest:predicate];
             if (result)
                 return result;
         }
-
+    
     return 0;
 }
 
@@ -76,7 +76,7 @@ static char kTriggerVerticalOffsetKey;
 }
 
 - (void)setBrc_manualEndRefreshing:(BOOL)manual {
-
+    
     objc_setAssociatedObject(self, &kBRCManualEndRefreshingKey, @(manual), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
@@ -161,7 +161,7 @@ const CGFloat kMinRefershTime = 0.5;
     
     if (self.brc_adjustBottomInset)
         insets.bottom += self.bottomRefreshControl.frame.size.height;
-        
+    
     [self brc_setContentInset:insets];
     
     [self setNeedsUpdateConstraints];
@@ -180,7 +180,7 @@ const CGFloat kMinRefershTime = 0.5;
 - (void)brc_setContentOffset:(CGPoint)contentOffset {
     
     [self brc_setContentOffset:contentOffset];
-
+    
     if (!self.brc_context)
         return;
     
@@ -191,7 +191,7 @@ const CGFloat kMinRefershTime = 0.5;
     
     UIEdgeInsets contentInset = self.contentInset;
     CGFloat height = self.frame.size.height;
-
+    
     CGFloat offset = (contentOffset.y + contentInset.top + height) - MAX((self.contentSize.height + contentInset.bottom + contentInset.top), height);
     
     if (offset > 0)
@@ -201,7 +201,7 @@ const CGFloat kMinRefershTime = 0.5;
 }
 
 - (void)brc_checkRefreshingTimeAndPerformBlock:(void (^)())block {
-
+    
     NSDate *date = self.brc_context.beginRefreshingDate;
     
     if (!date)
@@ -217,7 +217,7 @@ const CGFloat kMinRefershTime = 0.5;
 }
 
 - (void)brc_insertFakeTableView {
-
+    
     UITableView *tableView = self.brc_context.fakeTableView;
     
     [self.superview insertSubview:tableView aboveSubview:self];
@@ -229,11 +229,11 @@ const CGFloat kMinRefershTime = 0.5;
 }
 
 - (void)updateConstraints {
-
+    
     [self.brc_context.fakeTableView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self).offset(-self.contentInset.bottom);
     }];
-
+    
     [super updateConstraints];
 }
 
@@ -244,7 +244,7 @@ const CGFloat kMinRefershTime = 0.5;
     
     if (animated)
         [UIView beginAnimations:0 context:0];
-
+    
     self.contentInset = contentInset;
     
     if (animated)
@@ -259,7 +259,7 @@ const CGFloat kMinRefershTime = 0.5;
 - (void)setBottomRefreshControl:(UIRefreshControl *)refreshControl {
     
     if (self.bottomRefreshControl) {
-
+        
         [[NSNotificationCenter defaultCenter] removeObserver:self name:kRefrehControllerEndRefreshingNotification object:self.bottomRefreshControl];
         self.bottomRefreshControl.brc_manualEndRefreshing = NO;
         self.bottomRefreshControl.brc_titleLabel.transform = CGAffineTransformIdentity;
@@ -279,7 +279,7 @@ const CGFloat kMinRefershTime = 0.5;
         tableView.backgroundColor = [UIColor clearColor];
         tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
         tableView.transform = CGAffineTransformMakeRotation(M_PI);
-
+        
         refreshControl.brc_manualEndRefreshing = YES;
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(brc_didEndRefreshing) name:kRefrehControllerEndRefreshingNotification object:refreshControl];
         
@@ -287,11 +287,12 @@ const CGFloat kMinRefershTime = 0.5;
         
         
         [tableView addSubview:refreshControl];
-
+        
         context.fakeTableView = tableView;
-
         if (self.superview)
             [self brc_insertFakeTableView];
+        
+        [self updateConstraints];
     }
     
     [self willChangeValueForKey:@"bottomRefreshControl"];
@@ -318,7 +319,7 @@ const CGFloat kMinRefershTime = 0.5;
     
     CGPoint contentOffset = self.brc_context.fakeTableView.contentOffset;
     CGFloat triggerOffset = self.bottomRefreshControl.triggerVerticalOffset;
-
+    
     if (!self.brc_context.refreshed && (!self.decelerating || (contentOffset.y < 0))) {
         
         if (offset < triggerOffset) {
@@ -340,12 +341,12 @@ const CGFloat kMinRefershTime = 0.5;
 }
 
 - (void)brc_startRefresh {
-
+    
     self.brc_context.beginRefreshingDate = [NSDate date];
-
+    
     [self.bottomRefreshControl beginRefreshing];
     [self.bottomRefreshControl sendActionsForControlEvents:UIControlEventValueChanged];
-
+    
     if (!self.tracking && !self.brc_adjustBottomInset)
         [self brc_SetAdjustBottomInset:YES animated:YES];
 }
@@ -355,7 +356,7 @@ const CGFloat kMinRefershTime = 0.5;
     self.brc_context.wasTracking = self.tracking;
     
     if (!self.tracking && self.brc_adjustBottomInset) {
-     
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             [self brc_SetAdjustBottomInset:NO animated:YES];
         });
